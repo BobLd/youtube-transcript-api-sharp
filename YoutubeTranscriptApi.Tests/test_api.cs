@@ -11,7 +11,7 @@ namespace YoutubeTranscriptApi.Tests
 {
     // https://github.com/jdepoix/youtube-transcript-api/blob/master/youtube_transcript_api/test/test_api.py
 
-    public class TestYouTubeTranscriptApi : IDisposable
+    public sealed class TestYouTubeTranscriptApi : IDisposable
     {
         private readonly TranscriptList _listTranscriptsGJLlxj_dtq8;
         private readonly YouTubeTranscriptApi _youTubeTranscriptApi;
@@ -26,7 +26,7 @@ namespace YoutubeTranscriptApi.Tests
             _youTubeTranscriptApi.Dispose();
         }
 
-        private string load_asset(string fileName)
+        private static string LoadAsset(string fileName)
         {
             var path = Path.Combine(Directory.GetCurrentDirectory(), "assets", fileName);
             return File.ReadAllText(path);
@@ -143,14 +143,11 @@ namespace YoutubeTranscriptApi.Tests
 
         [Fact(Skip = "TO DO")]
         public void test_get_transcript__fallback_language_is_used()
-        {
-
-        }
+        { }
 
         [Fact(Skip = "TO DO")]
         public void test_get_transcript__create_consent_cookie_if_needed()
         {
-
             using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
             {
                 var transcript = youTubeTranscriptApi.GetTranscript("F1xioXWb8CY").ToList();
@@ -169,7 +166,7 @@ namespace YoutubeTranscriptApi.Tests
                     self.assertEqual(request.headers['cookie'], 'CONSENT=YES+cb.20210328-17-p0.de+FX+119')
              */
 
-            var html = load_asset("youtube_consent_page.html.static");
+            var html = LoadAsset("youtube_consent_page.html.static");
             using (var httpHandler = new HttpClientHandler() { CookieContainer = new CookieContainer() })
             using (var httpRequest = new HttpClient(httpHandler))
             {
@@ -183,7 +180,7 @@ namespace YoutubeTranscriptApi.Tests
         {
             Assert.Throws<FailedToCreateConsentCookie>(() =>
             {
-                string html = load_asset("youtube_consent_page.html.static");
+                string html = LoadAsset("youtube_consent_page.html.static");
                 using (var httpHandler = new HttpClientHandler() { CookieContainer = new CookieContainer() })
                 using (var httpRequest = new HttpClient(httpHandler))
                 {
@@ -199,7 +196,7 @@ namespace YoutubeTranscriptApi.Tests
         {
             Assert.Throws<FailedToCreateConsentCookie>(() =>
             {
-                string html = load_asset("youtube_consent_page_invalid.html.static");
+                string html = LoadAsset("youtube_consent_page_invalid.html.static");
                 using (var httpHandler = new HttpClientHandler() { CookieContainer = new CookieContainer() })
                 using (var httpRequest = new HttpClient(httpHandler))
                 {
@@ -215,12 +212,12 @@ namespace YoutubeTranscriptApi.Tests
         {
             Assert.Throws<VideoUnavailable>(() =>
             {
-                string html = load_asset("youtube_video_unavailable.html.static");
+                string html = LoadAsset("youtube_video_unavailable.html.static");
                 using (var httpHandler = new HttpClientHandler() { CookieContainer = new CookieContainer() })
                 using (var httpRequest = new HttpClient(httpHandler))
                 {
                     var transcriptListFetcher = new TranscriptListFetcher(httpRequest, httpHandler);
-                    transcriptListFetcher.extractCaptionsJson(html, "abc");
+                    TranscriptListFetcher.extractCaptionsJson(html, "abc");
                 }
 
                 /*
@@ -237,12 +234,12 @@ namespace YoutubeTranscriptApi.Tests
         {
             Assert.Throws<TooManyRequests>(() =>
             {
-                string html = load_asset("youtube_too_many_requests.html.static");
+                string html = LoadAsset("youtube_too_many_requests.html.static");
                 using (var httpHandler = new HttpClientHandler() { CookieContainer = new CookieContainer() })
                 using (var httpRequest = new HttpClient(httpHandler))
                 {
                     var transcriptListFetcher = new TranscriptListFetcher(httpRequest, httpHandler);
-                    transcriptListFetcher.extractCaptionsJson(html, "abc");
+                    TranscriptListFetcher.extractCaptionsJson(html, "abc");
                 }
             });
         }
@@ -276,12 +273,12 @@ namespace YoutubeTranscriptApi.Tests
         {
             Assert.Throws<NoTranscriptAvailable>(() =>
             {
-                string html = load_asset("youtube_no_transcript_available.html.static");
+                string html = LoadAsset("youtube_no_transcript_available.html.static");
                 using (var httpHandler = new HttpClientHandler() { CookieContainer = new CookieContainer() })
                 using (var httpRequest = new HttpClient(httpHandler))
                 {
                     var transcriptListFetcher = new TranscriptListFetcher(httpRequest, httpHandler);
-                    transcriptListFetcher.extractCaptionsJson(html, "MwBPvcYFY2E");
+                    TranscriptListFetcher.extractCaptionsJson(html, "MwBPvcYFY2E");
                 }
 
                 using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
@@ -326,7 +323,7 @@ namespace YoutubeTranscriptApi.Tests
         {
             Assert.Throws<CookiePathInvalid>(() =>
             {
-                var cookies = "nonexistent_cookies.txt";
+                const string cookies = "nonexistent_cookies.txt";
 
                 using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
                 {

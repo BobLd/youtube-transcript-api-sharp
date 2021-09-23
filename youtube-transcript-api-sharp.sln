@@ -5,7 +5,12 @@ VisualStudioVersion = 16.0.31613.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YoutubeTranscriptApi.Tests", "YoutubeTranscriptApi.Tests\YoutubeTranscriptApi.Tests.csproj", "{C5024EC6-5404-41F0-A3F7-38B1F44B159C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoutubeTranscriptApi", "YoutubeTranscriptApi\YoutubeTranscriptApi.csproj", "{A952F6E4-999B-4AB0-9147-2B5B0FE9EE23}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YoutubeTranscriptApi", "YoutubeTranscriptApi\YoutubeTranscriptApi.csproj", "{A952F6E4-999B-4AB0-9147-2B5B0FE9EE23}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BF469823-7BEC-4D5A-82D8-4E0255ACDB49}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

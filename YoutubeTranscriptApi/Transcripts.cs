@@ -36,7 +36,7 @@ namespace YoutubeTranscriptApi
                 extractCaptionsJson(fetchVideoHtml(videoId), videoId));
         }
 
-        internal JsonElement extractCaptionsJson(string html, string videoId)
+        internal static JsonElement extractCaptionsJson(string html, string videoId)
         {
             var splitted_html = html.Split("\"captions\":");
 
@@ -80,11 +80,11 @@ namespace YoutubeTranscriptApi
 
         public string fetchVideoHtml(string videoId)
         {
-            var html = this.fetchHtml(videoId);
+            var html = fetchHtml(videoId);
             if (html.Contains("action=\"https://consent.youtube.com/s\""))
             {
                 createConsentCookie(html, videoId);
-                html = this.fetchHtml(videoId);
+                html = fetchHtml(videoId);
                 if (html.Contains("action=\"https://consent.youtube.com/s\""))
                 {
                     throw new FailedToCreateConsentCookie(videoId);
@@ -127,10 +127,10 @@ namespace YoutubeTranscriptApi
         /// <param name="translationLanguages">list of languages which can be used for translatable languages</param>
         internal TranscriptList(string videoId, Dictionary<string, Transcript> manuallyCreatedTranscripts, Dictionary<string, Transcript> generatedTranscripts, List<Dictionary<string, string>> translationLanguages)
         {
-            this.VideoId = videoId;
-            this._manuallyCreatedTranscripts = manuallyCreatedTranscripts;
-            this._generatedTranscripts = generatedTranscripts;
-            this._translationLanguages = translationLanguages;
+            VideoId = videoId;
+            _manuallyCreatedTranscripts = manuallyCreatedTranscripts;
+            _generatedTranscripts = generatedTranscripts;
+            _translationLanguages = translationLanguages;
         }
 
         /// <summary>
@@ -256,16 +256,16 @@ namespace YoutubeTranscriptApi
         {
             foreach (var languageCode in languageCodes)
             {
-                foreach (var transcript_dict in transcriptDicts)
+                foreach (var transcriptDict in transcriptDicts)
                 {
-                    if (transcript_dict.TryGetValue(languageCode, out var val))
+                    if (transcriptDict.TryGetValue(languageCode, out var val))
                     {
                         return val;
                     }
                 }
             }
 
-            throw new NoTranscriptFound(this.VideoId, languageCodes, this);
+            throw new NoTranscriptFound(VideoId, languageCodes, this);
         }
 
         /// <inheritdoc/>
@@ -280,7 +280,7 @@ namespace YoutubeTranscriptApi
                 $"{getLanguageDescription(_translationLanguages.Select(translationLanguage => $"{ translationLanguage["language_code"]} (\"{translationLanguage["language"]}\")"))}";
         }
 
-        private string getLanguageDescription(IEnumerable<string> transcriptStrings)
+        private static string getLanguageDescription(IEnumerable<string> transcriptStrings)
         {
             if (!transcriptStrings.Any()) return "None";
             return string.Join("\n", transcriptStrings.Select(transcript => $" - {transcript}"));
@@ -313,14 +313,14 @@ namespace YoutubeTranscriptApi
         public Transcript(HttpClient httpClient, string videoId, string url, string language, string languageCode,
             bool isGenerated, IReadOnlyList<Dictionary<string, string>> translationLanguages)
         {
-            this._httpClient = httpClient;
-            this.VideoId = videoId;
-            this._url = url;
-            this.Language = language;
-            this.LanguageCode = languageCode;
-            this.IsGenerated = isGenerated;
-            this._translationLanguages = translationLanguages;
-            this._translationLanguagesDict = new Dictionary<string, string>();
+            _httpClient = httpClient;
+            VideoId = videoId;
+            _url = url;
+            Language = language;
+            LanguageCode = languageCode;
+            IsGenerated = isGenerated;
+            _translationLanguages = translationLanguages;
+            _translationLanguagesDict = new Dictionary<string, string>();
             foreach (var translation_language in translationLanguages)
             {
                 _translationLanguagesDict.Add(translation_language["language_code"], translation_language["language"]);
@@ -333,7 +333,7 @@ namespace YoutubeTranscriptApi
         /// <returns>a list of <see cref="TranscriptItem"/> containing the 'text', 'start' and 'duration' keys</returns>
         public IEnumerable<TranscriptItem> Fetch()
         {
-            return new TranscriptParser().Parse(this._httpClient.GetStringAsync(this._url).Result);
+            return new TranscriptParser().Parse(_httpClient.GetStringAsync(_url).Result);
         }
 
         /// <inheritdoc/>

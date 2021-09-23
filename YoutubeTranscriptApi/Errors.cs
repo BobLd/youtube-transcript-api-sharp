@@ -30,7 +30,7 @@ namespace YoutubeTranscriptApi
         protected CouldNotRetrieveTranscript(string videoId, string cause)
             : base(buildErrorMessage(videoId, cause))
         {
-            this.VideoId = videoId;
+            VideoId = videoId;
         }
 
         /// <summary>
@@ -41,9 +41,7 @@ namespace YoutubeTranscriptApi
         /// <param name="exception"></param>
         public CouldNotRetrieveTranscript(string videoId, string cause, Exception exception)
             : base(buildErrorMessage(videoId, cause), exception)
-        {
-
-        }
+        { }
 
         private static string buildErrorMessage(string videoId, string cause)
         {

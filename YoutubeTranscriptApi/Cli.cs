@@ -12,9 +12,9 @@ namespace YoutubeTranscriptApi
             throw new NotImplementedException();
         }
 
-        public string run()
+        public string Run()
         {
-            var parsed_args = this.parseArgs();
+            var parsed_args = parseArgs();
             throw new NotImplementedException();
         }
 

@@ -147,8 +147,7 @@ namespace YoutubeTranscriptApi
                 {
                     if (!line.expiration.HasValue || line.expiration.Value < DateTimeOffset.UtcNow)
                     {
-                        // Expired
-                        continue;
+                        continue; // Expired
                     }
 
                     cookieCollection.Add(new Cookie(line.name, line.value, line.path, line.domain));
@@ -176,9 +175,9 @@ namespace YoutubeTranscriptApi
         /// Parse cookie file a la MozillaCookieJar
         /// </summary>
         /// <param name="pathToFile"></param>
-        private IEnumerable<(string domain, bool? flag, string path, bool? secure, DateTimeOffset? expiration, string name, string value)> NetscapeHttpCookieFileParser(string pathToFile)
+        private static IEnumerable<(string domain, bool? flag, string path, bool? secure, DateTimeOffset? expiration, string name, string value)> NetscapeHttpCookieFileParser(string pathToFile)
         {
-            Func<string, bool?> parseBool = text =>
+            static bool? parseBool(string text)
             {
                 switch (text)
                 {
@@ -189,7 +188,7 @@ namespace YoutubeTranscriptApi
                     default:
                         return null;
                 }
-            };
+            }
 
             foreach (var line in File.ReadAllLines(pathToFile))
             {
