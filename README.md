@@ -40,21 +40,21 @@ using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
 }
 ```
 
-This will return a list of dictionaries looking somewhat like this:
+This will return a list of `TranscriptItem` looking somewhat like this:
 
 ```csharp
 [
     {
-        'text': 'Hey there',
-        'start': 7.58,
-        'duration': 6.13
+        Text: "Hey there",
+        Start: 7.58,
+        Duration: 6.13
     },
     {
-        'text': 'how are you',
-        'start': 14.08,
-        'duration': 7.58
+        text: "how are you",
+        start: 14.08,
+        duration: 7.58
     },
-    # ...
+    ...
 ]
 ```
 
