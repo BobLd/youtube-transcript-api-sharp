@@ -298,7 +298,7 @@ If a video's ID starts with a hyphen you'll have to mask the hyphen using `\` to
 youtube_transcript_api "\-abc123"
 ```
 
-## Proxy  
+## Proxy
 
 You can specify a https/http proxy, which will be used during the requests to YouTube:  
 
@@ -310,7 +310,7 @@ YouTubeTranscriptApi.get_transcript(video_id, proxies={"http": "http://user:pass
 
 As the `proxies` dict is passed on to the `requests.get(...)` call, it follows the [format used by the requests library](http://docs.python-requests.org/en/master/user/advanced/#proxies).  
 
-Using the CLI:  
+Using the CLI:
 
 ```  
 youtube_transcript_api <first_video_id> <second_video_id> --http-proxy http://user:pass@domain:port --https-proxy https://user:pass@domain:port  
@@ -337,11 +337,11 @@ youtube_transcript_api <first_video_id> <second_video_id> --cookies /path/to/you
 ```
 
 
-## Warning  
+## Warning
 
  This code uses an undocumented part of the YouTube API, which is called by the YouTube web-client. So there is no guarantee that it won't stop working tomorrow, if they change how things work. I will however do my best to make things working again as soon as possible if that happens. So if it stops working, let me know!  
 
-## Donation  
+## Donation (oringal repos donation link)
 
 If this project makes you happy by reducing your development time, you can make me happy by treating me to a cup of coffee :)  
 
