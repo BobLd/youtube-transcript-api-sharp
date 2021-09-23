@@ -206,6 +206,7 @@
             Initializes a new instance of the <see cref="T:YoutubeTranscriptApi.TranscriptListFetcher"/> class.
             </summary>
             <param name="http_client"></param>
+            <param name="httpClientHandler"></param>
         </member>
         <member name="T:YoutubeTranscriptApi.TranscriptList">
             <summary>

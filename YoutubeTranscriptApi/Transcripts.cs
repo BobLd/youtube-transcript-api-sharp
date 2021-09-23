@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -13,7 +12,7 @@ namespace YoutubeTranscriptApi
 {
     //https://github.com/jdepoix/youtube-transcript-api/blob/c5bf0132ffa2906cc1bf6d480a70ef799dedc209/youtube_transcript_api/_transcripts.py
 
-    public class TranscriptListFetcher
+    internal sealed class TranscriptListFetcher
     {
         private readonly HttpClient _http_client;
         private readonly HttpClientHandler _httpClientHandler;
@@ -37,7 +36,7 @@ namespace YoutubeTranscriptApi
                 _extract_captions_json(_fetch_video_html(video_id), video_id));
         }
 
-        public JsonElement _extract_captions_json(string html, string video_id)
+        internal JsonElement _extract_captions_json(string html, string video_id)
         {
             var splitted_html = html.Split("\"captions\":");
 
@@ -68,7 +67,7 @@ namespace YoutubeTranscriptApi
             return captions_json;
         }
 
-        public void _create_consent_cookie(string html, string video_id)
+        internal void _create_consent_cookie(string html, string video_id)
         {
             var match = Regex.Match(html, "name=\"v\" value=\"(.*?)\"");
             if (!match.Success)
@@ -290,16 +289,15 @@ namespace YoutubeTranscriptApi
 
     public class Transcript
     {
+        private readonly IReadOnlyList<Dictionary<string, string>> translation_languages;
+        private readonly Dictionary<string, string> _translation_languages_dict;
         private readonly HttpClient _http_client;
-        public readonly string _url;
+        internal readonly string _url;
 
         public string video_id { get; }
         public string language { get; }
         public string language_code { get; }
         public bool is_generated { get; }
-
-        private readonly IReadOnlyList<Dictionary<string, string>> translation_languages;
-        private readonly Dictionary<string, string> _translation_languages_dict;
 
         /// <summary>
         /// You probably don't want to initialize this directly. Usually you'll access Transcript objects using a

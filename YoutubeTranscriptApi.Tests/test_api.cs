@@ -37,9 +37,7 @@ namespace YoutubeTranscriptApi.Tests
         {
             using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
             {
-                var transcript = youTubeTranscriptApi.get_transcript("GJLlxj_dtq8");
-
-                foreach (var item in transcript)
+                foreach (var item in youTubeTranscriptApi.get_transcript("GJLlxj_dtq8"))
                 {
                     Trace.WriteLine(JsonSerializer.Serialize(item, new JsonSerializerOptions()
                     {
