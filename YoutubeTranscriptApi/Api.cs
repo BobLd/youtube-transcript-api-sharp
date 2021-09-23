@@ -84,7 +84,7 @@ namespace YoutubeTranscriptApi
         /// <param name="cookies">a string of the path to a text file containing youtube authorization cookies</param>
         /// <returns>a tuple containing a dictionary mapping video ids onto their corresponding transcripts, and a list of
         /// video ids, which could not be retrieved</returns>
-        public (Dictionary<string, IEnumerable<TranscriptItem>>, List<string>) GetTranscripts(List<string> video_ids, List<string> languages = null, bool continue_after_error = false, Dictionary<string, string> proxies = null, string cookies = null)
+        public (Dictionary<string, IEnumerable<TranscriptItem>>, IReadOnlyList<string>) GetTranscripts(IReadOnlyList<string> video_ids, IReadOnlyList<string> languages = null, bool continue_after_error = false, Dictionary<string, string> proxies = null, string cookies = null)
         {
             //     :param proxies: a dictionary mapping of http and https proxies to be used for the network requests
             //     :type proxies: { 'http': str, 'https': str} -http://docs.python-requests.org/en/master/user/advanced/#proxies

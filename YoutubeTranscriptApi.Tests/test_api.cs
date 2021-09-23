@@ -37,13 +37,7 @@ namespace YoutubeTranscriptApi.Tests
         {
             using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
             {
-                foreach (var item in youTubeTranscriptApi.GetTranscript("GJLlxj_dtq8"))
-                {
-                    Trace.WriteLine(JsonSerializer.Serialize(item, new JsonSerializerOptions()
-                    {
-                        WriteIndented = true
-                    }));
-                }
+                var transcript = youTubeTranscriptApi.GetTranscript("GJLlxj_dtq8");
             }
         }
 

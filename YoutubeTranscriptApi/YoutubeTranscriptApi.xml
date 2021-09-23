@@ -51,7 +51,7 @@
             <param name="cookies">a string of the path to a text file containing youtube authorization cookies</param>
             <returns>the list of available transcripts</returns>
         </member>
-        <member name="M:YoutubeTranscriptApi.YouTubeTranscriptApi.GetTranscripts(System.Collections.Generic.List{System.String},System.Collections.Generic.List{System.String},System.Boolean,System.Collections.Generic.Dictionary{System.String,System.String},System.String)">
+        <member name="M:YoutubeTranscriptApi.YouTubeTranscriptApi.GetTranscripts(System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.IReadOnlyList{System.String},System.Boolean,System.Collections.Generic.Dictionary{System.String,System.String},System.String)">
             <summary>
             Retrieves the transcripts for a list of videos.
             </summary>
