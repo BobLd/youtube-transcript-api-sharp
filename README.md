@@ -3,9 +3,10 @@
 - Ported from python [youtube-transcript-api ](https://github.com/jdepoix/youtube-transcript-api)
 - Below comes from the original README and ported to C#
 
-# YouTube Transcript/Subtitle API (including automatically generated subtitles and subtitle translations)  
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=BAENLEW8VUJ6G&source=url) 
+# From [youtube-transcript-api ](https://github.com/jdepoix/youtube-transcript-api): YouTube Transcript/Subtitle API (including automatically generated subtitles and subtitle translations)
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=BAENLEW8VUJ6G&source=url) (oringal repos donation link)
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](http://opensource.org/licenses/MIT)
 
 This is a C# API which allows you to get the transcript/subtitles for a given YouTube video. It also works for automatically generated subtitles, supports translating subtitles and it does not require a headless browser, like other selenium based solutions do!
