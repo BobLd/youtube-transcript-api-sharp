@@ -14,7 +14,7 @@
             Initializes a new instance of the <see cref="T:YoutubeTranscriptApi.YouTubeTranscriptApi"/> class.
             </summary>
         </member>
-        <member name="M:YoutubeTranscriptApi.YouTubeTranscriptApi.list_transcripts(System.String,System.Collections.Generic.Dictionary{System.String,System.String},System.String)">
+        <member name="M:YoutubeTranscriptApi.YouTubeTranscriptApi.ListTranscripts(System.String,System.Collections.Generic.Dictionary{System.String,System.String},System.String)">
             <summary>
                  Retrieves the list of transcripts which are available for a given video. It returns a `TranscriptList` object
                    which is iterable and provides methods to filter the list of transcripts for specific languages. While iterating
@@ -51,7 +51,7 @@
             <param name="cookies">a string of the path to a text file containing youtube authorization cookies</param>
             <returns>the list of available transcripts</returns>
         </member>
-        <member name="M:YoutubeTranscriptApi.YouTubeTranscriptApi.get_transcripts(System.Collections.Generic.List{System.String},System.Collections.Generic.List{System.String},System.Boolean,System.Collections.Generic.Dictionary{System.String,System.String},System.String)">
+        <member name="M:YoutubeTranscriptApi.YouTubeTranscriptApi.GetTranscripts(System.Collections.Generic.List{System.String},System.Collections.Generic.List{System.String},System.Boolean,System.Collections.Generic.Dictionary{System.String,System.String},System.String)">
             <summary>
             Retrieves the transcripts for a list of videos.
             </summary>
@@ -66,7 +66,7 @@
             <returns>a tuple containing a dictionary mapping video ids onto their corresponding transcripts, and a list of
             video ids, which could not be retrieved</returns>
         </member>
-        <member name="M:YoutubeTranscriptApi.YouTubeTranscriptApi.get_transcript(System.String,System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.String)">
+        <member name="M:YoutubeTranscriptApi.YouTubeTranscriptApi.GetTranscript(System.String,System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.String)">
              <summary>
              Retrieves the transcript for a single video. This is just a shortcut for calling::
             <para>YouTubeTranscriptApi.list_transcripts(video_id, proxies).find_transcript(languages).fetch()</para>

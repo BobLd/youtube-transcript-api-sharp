@@ -9,11 +9,11 @@ namespace YoutubeTranscriptApi
     // https://github.com/jdepoix/youtube-transcript-api/blob/master/youtube_transcript_api/_api.py
 
     /// <summary>
-    /// 
+    /// YouTube transcript api.
     /// </summary>
     public sealed class YouTubeTranscriptApi : IDisposable
     {
-        private readonly HttpClient _http_client;
+        private readonly HttpClient _httpClient;
         private readonly HttpClientHandler _httpHandler;
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace YoutubeTranscriptApi
         public YouTubeTranscriptApi()
         {
             _httpHandler = new HttpClientHandler() { CookieContainer = new CookieContainer() };
-            _http_client = new HttpClient(_httpHandler, true);
+            _httpClient = new HttpClient(_httpHandler, true);
         }
 
         /// <summary>
@@ -60,15 +60,15 @@ namespace YoutubeTranscriptApi
         /// <param name="proxies">a dictionary mapping of http and https proxies to be used for the network requests</param>
         /// <param name="cookies">a string of the path to a text file containing youtube authorization cookies</param>
         /// <returns>the list of available transcripts</returns>
-        public TranscriptList list_transcripts(string video_id, Dictionary<string, string> proxies = null, string cookies = null)
+        public TranscriptList ListTranscripts(string video_id, Dictionary<string, string> proxies = null, string cookies = null)
         {
             if (cookies != null)
             {
-                _httpHandler.CookieContainer.Add(_load_cookies(cookies, video_id));
+                _httpHandler.CookieContainer.Add(loadCookies(cookies, video_id));
             }
 
             //    http_client.proxies = proxies if proxies else {}
-            return new TranscriptListFetcher(_http_client, _httpHandler).fetch(video_id);
+            return new TranscriptListFetcher(_httpClient, _httpHandler).Fetch(video_id);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace YoutubeTranscriptApi
         /// <param name="cookies">a string of the path to a text file containing youtube authorization cookies</param>
         /// <returns>a tuple containing a dictionary mapping video ids onto their corresponding transcripts, and a list of
         /// video ids, which could not be retrieved</returns>
-        public (Dictionary<string, IEnumerable<TranscriptItem>>, List<string>) get_transcripts(List<string> video_ids, List<string> languages = null, bool continue_after_error = false, Dictionary<string, string> proxies = null, string cookies = null)
+        public (Dictionary<string, IEnumerable<TranscriptItem>>, List<string>) GetTranscripts(List<string> video_ids, List<string> languages = null, bool continue_after_error = false, Dictionary<string, string> proxies = null, string cookies = null)
         {
             //     :param proxies: a dictionary mapping of http and https proxies to be used for the network requests
             //     :type proxies: { 'http': str, 'https': str} -http://docs.python-requests.org/en/master/user/advanced/#proxies
@@ -100,7 +100,7 @@ namespace YoutubeTranscriptApi
             {
                 try
                 {
-                    data[video_id] = get_transcript(video_id, languages, proxies, cookies);
+                    data[video_id] = GetTranscript(video_id, languages, proxies, cookies);
                 }
                 catch (Exception)
                 {
@@ -123,7 +123,7 @@ namespace YoutubeTranscriptApi
         /// <param name="proxies">a dictionary mapping of http and https proxies to be used for the network requests</param>
         /// <param name="cookies"> a string of the path to a text file containing youtube authorization cookies</param>
         /// <returns></returns>
-        public IEnumerable<TranscriptItem> get_transcript(string video_id, IReadOnlyList<string> languages = null, Dictionary<string, string> proxies = null, string cookies = null)
+        public IEnumerable<TranscriptItem> GetTranscript(string video_id, IReadOnlyList<string> languages = null, Dictionary<string, string> proxies = null, string cookies = null)
         {
             if (languages == null)
             {
@@ -131,10 +131,10 @@ namespace YoutubeTranscriptApi
             }
             //:type proxies: {'http': str, 'https': str} - http://docs.python-requests.org/en/master/user/advanced/#proxies
 
-            return list_transcripts(video_id, proxies, cookies).find_transcript(languages).fetch();
+            return ListTranscripts(video_id, proxies, cookies).FindTranscript(languages).Fetch();
         }
 
-        public CookieCollection _load_cookies(string cookies, string video_id)
+        internal CookieCollection loadCookies(string cookies, string video_id)
         {
             // https://stackoverflow.com/questions/15788341/import-cookies-from-text-file-in-c-sharp-window-forms
             // https://stackoverflow.com/questions/12024657/cookiecontainer-confusion
@@ -143,46 +143,15 @@ namespace YoutubeTranscriptApi
             try
             {
                 var cookieCollection = new CookieCollection();
-
-                // Parse cookie file a la MozillaCookieJar
-                // Netscape HTTP Cooke File Parser (format)
-                var lines = File.ReadAllLines(cookies);
-                foreach (var line in lines)
+                foreach (var line in NetscapeHttpCookieFileParser(cookies))
                 {
-                    if (line.StartsWith("#") || string.IsNullOrEmpty(line)) continue;
-
-                    /* https://www.hashbangcode.com/article/netscape-http-cooke-file-parser-php
-                     * 0 domain - The domain that created and that can read the variable.
-                     * 1 flag - A TRUE/FALSE value indicating if all machines within a given domain can access the variable. 
-                     *    This value is set automatically by the browser, depending on the value you set for domain.
-                     * 2 path - The path within the domain that the variable is valid for.
-                     * 3 secure - A TRUE/FALSE value indicating if a secure connection with the domain is needed to access the variable.
-                     * 4 expiration - The UNIX time that the variable will expire on.
-                     * 5 name - The name of the variable.
-                     * 6 value - The value of the variable.
-                     */
-                    var split = line.Split('\t');
-                    string domain = split[0];
-                    string flag = split[1];
-                    string path = split[2];
-                    string secure = split[3];
-                    string expiration = split[4];
-                    string name = split[5];
-                    string value = split[6];
-
-                    if (!long.TryParse(expiration, out var expirationL))
-                    {
-                        continue;
-                    }
-
-                    var date = DateTimeOffset.FromUnixTimeSeconds(expirationL);
-                    if (date < DateTimeOffset.UtcNow)
+                    if (!line.expiration.HasValue || line.expiration.Value < DateTimeOffset.UtcNow)
                     {
                         // Expired
                         continue;
                     }
 
-                    cookieCollection.Add(new Cookie(name, value, path, domain));
+                    cookieCollection.Add(new Cookie(line.name, line.value, line.path, line.domain));
                 }
 
                 if (cookieCollection.Count == 0)
@@ -198,10 +167,62 @@ namespace YoutubeTranscriptApi
             }
         }
 
+        /// <summary>
+        /// Netscape HTTP Cookie File Parser (format)
+        /// Parse cookie file a la MozillaCookieJar
+        /// </summary>
+        /// <param name="pathToFile"></param>
+        private IEnumerable<(string domain, bool? flag, string path, bool? secure, DateTimeOffset? expiration, string name, string value)> NetscapeHttpCookieFileParser(string pathToFile)
+        {
+            Func<string, bool?> parseBool = text =>
+            {
+                switch (text)
+                {
+                    case "TRUE":
+                        return true;
+                    case "FALSE":
+                        return false;
+                    default:
+                        return null;
+                }
+            };
+
+            foreach (var line in File.ReadAllLines(pathToFile))
+            {
+                if (line.StartsWith("#") || string.IsNullOrEmpty(line)) continue;
+
+                /* https://www.hashbangcode.com/article/netscape-http-cooke-file-parser-php
+                 * 0 domain - The domain that created and that can read the variable.
+                 * 1 flag - A TRUE/FALSE value indicating if all machines within a given domain can access the variable. 
+                 *    This value is set automatically by the browser, depending on the value you set for domain.
+                 * 2 path - The path within the domain that the variable is valid for.
+                 * 3 secure - A TRUE/FALSE value indicating if a secure connection with the domain is needed to access the variable.
+                 * 4 expiration - The UNIX time that the variable will expire on.
+                 * 5 name - The name of the variable.
+                 * 6 value - The value of the variable.
+                 */
+
+                var split = line.Split('\t');
+                string domain = split[0];
+                bool? flag = parseBool(split[1]);
+                string path = split[2];
+                bool? secure = parseBool(split[3]);
+                DateTimeOffset? expiration = null;
+                if (long.TryParse(split[4], out var expirationL))
+                {
+                    expiration = DateTimeOffset.FromUnixTimeSeconds(expirationL);
+                }
+                string name = split[5];
+                string value = split[6];
+
+                yield return (domain, flag, path, secure, expiration, name, value);
+            }
+        }
+
         /// <inheritdoc/>
         public void Dispose()
         {
-            _http_client.Dispose();
+            _httpClient.Dispose();
         }
     }
 }

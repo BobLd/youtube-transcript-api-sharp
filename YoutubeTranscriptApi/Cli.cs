@@ -14,25 +14,25 @@ namespace YoutubeTranscriptApi
 
         public string run()
         {
-            var parsed_args = this._parse_args();
+            var parsed_args = this.parseArgs();
             throw new NotImplementedException();
         }
 
-        object _fetch_transcript(string[] parsed_args, Dictionary<string, string> proxies, string cookies, string video_id)
+        internal object fetchTranscript(string[] parsed_args, Dictionary<string, string> proxies, string cookies, string video_id)
         {
             using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
             {
-                var transcript_list = youTubeTranscriptApi.list_transcripts(video_id, proxies: proxies, cookies: cookies);
+                var transcript_list = youTubeTranscriptApi.ListTranscripts(video_id, proxies: proxies, cookies: cookies);
             }
             throw new NotImplementedException();
         }
 
-        object _parse_args()
+        internal object parseArgs()
         {
             throw new NotImplementedException();
         }
 
-        string _sanitize_video_ids(params string[] args)
+        internal string sanitizeVideoIds(params string[] args)
         {
             throw new NotImplementedException();
         }

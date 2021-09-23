@@ -14,29 +14,29 @@ namespace YoutubeTranscriptApi
 
     internal sealed class TranscriptListFetcher
     {
-        private readonly HttpClient _http_client;
+        private readonly HttpClient _httpClient;
         private readonly HttpClientHandler _httpClientHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TranscriptListFetcher"/> class.
         /// </summary>
-        /// <param name="http_client"></param>
+        /// <param name="httpClient"></param>
         /// <param name="httpClientHandler"></param>
-        public TranscriptListFetcher(HttpClient http_client, HttpClientHandler httpClientHandler)
+        public TranscriptListFetcher(HttpClient httpClient, HttpClientHandler httpClientHandler)
         {
             _httpClientHandler = httpClientHandler;
-            _http_client = http_client;
+            _httpClient = httpClient;
         }
 
-        public TranscriptList fetch(string video_id)
+        public TranscriptList Fetch(string videoId)
         {
             return TranscriptList.build(
-                _http_client,
-                video_id,
-                _extract_captions_json(_fetch_video_html(video_id), video_id));
+                _httpClient,
+                videoId,
+                extractCaptionsJson(fetchVideoHtml(videoId), videoId));
         }
 
-        internal JsonElement _extract_captions_json(string html, string video_id)
+        internal JsonElement extractCaptionsJson(string html, string videoId)
         {
             var splitted_html = html.Split("\"captions\":");
 
@@ -44,15 +44,15 @@ namespace YoutubeTranscriptApi
             {
                 if (html.Contains("class=\"g-recaptcha\""))
                 {
-                    throw new TooManyRequests(video_id);
+                    throw new TooManyRequests(videoId);
                 }
 
                 if (!html.Contains("\"playabilityStatus\":"))
                 {
-                    throw new VideoUnavailable(video_id);
+                    throw new VideoUnavailable(videoId);
                 }
 
-                throw new TranscriptsDisabled(video_id);
+                throw new TranscriptsDisabled(videoId);
             }
 
             var captions_json = JsonSerializer.Deserialize<JsonElement>(
@@ -61,42 +61,42 @@ namespace YoutubeTranscriptApi
 
             if (!captions_json.TryGetProperty("captionTracks", out _))
             {
-                throw new NoTranscriptAvailable(video_id);
+                throw new NoTranscriptAvailable(videoId);
             }
 
             return captions_json;
         }
 
-        internal void _create_consent_cookie(string html, string video_id)
+        internal void createConsentCookie(string html, string videoId)
         {
             var match = Regex.Match(html, "name=\"v\" value=\"(.*?)\"");
             if (!match.Success)
             {
-                throw new FailedToCreateConsentCookie(video_id);
+                throw new FailedToCreateConsentCookie(videoId);
             }
 
             _httpClientHandler.CookieContainer.Add(new Cookie("CONSENT", $"YES+{match.Groups[1].Value}", null, ".youtube.com"));
         }
 
-        public string _fetch_video_html(string video_id)
+        public string fetchVideoHtml(string videoId)
         {
-            var html = this._fetch_html(video_id);
+            var html = this.fetchHtml(videoId);
             if (html.Contains("action=\"https://consent.youtube.com/s\""))
             {
-                _create_consent_cookie(html, video_id);
-                html = this._fetch_html(video_id);
+                createConsentCookie(html, videoId);
+                html = this.fetchHtml(videoId);
                 if (html.Contains("action=\"https://consent.youtube.com/s\""))
                 {
-                    throw new FailedToCreateConsentCookie(video_id);
+                    throw new FailedToCreateConsentCookie(videoId);
                 }
             }
             return html;
         }
 
-        public string _fetch_html(string video_id)
+        public string fetchHtml(string videoId)
         {
-            string debug_url = string.Format(Settings.WATCH_URL, video_id);
-            var raw_result = _http_client.GetStringAsync(debug_url).Result;
+            string debug_url = string.Format(Settings.WATCH_URL, videoId);
+            var raw_result = _httpClient.GetStringAsync(debug_url).Result;
             var result = raw_result.Replace(
                 @"\u0026", "&"
                 ).Replace(
@@ -112,50 +112,50 @@ namespace YoutubeTranscriptApi
     /// </summary>
     public class TranscriptList : IEnumerable<Transcript>
     {
-        public string video_id { get; }
+        public string VideoId { get; }
 
-        private readonly Dictionary<string, Transcript> _manually_created_transcripts;
-        private readonly Dictionary<string, Transcript> _generated_transcripts;
-        private readonly List<Dictionary<string, string>> _translation_languages;
+        private readonly Dictionary<string, Transcript> _manuallyCreatedTranscripts;
+        private readonly Dictionary<string, Transcript> _generatedTranscripts;
+        private readonly List<Dictionary<string, string>> _translationLanguages;
 
         /// <summary>
         /// The constructor is only for internal use. Use the static build method instead.
         /// </summary>
-        /// <param name="video_id"> the id of the video this TranscriptList is for</param>
-        /// <param name="manually_created_transcripts">dict mapping language codes to the manually created transcripts</param>
-        /// <param name="generated_transcripts">dict mapping language codes to the generated transcripts</param>
-        /// <param name="translation_languages">list of languages which can be used for translatable languages</param>
-        internal TranscriptList(string video_id, Dictionary<string, Transcript> manually_created_transcripts, Dictionary<string, Transcript> generated_transcripts, List<Dictionary<string, string>> translation_languages)
+        /// <param name="videoId"> the id of the video this TranscriptList is for</param>
+        /// <param name="manuallyCreatedTranscripts">dict mapping language codes to the manually created transcripts</param>
+        /// <param name="generatedTranscripts">dict mapping language codes to the generated transcripts</param>
+        /// <param name="translationLanguages">list of languages which can be used for translatable languages</param>
+        internal TranscriptList(string videoId, Dictionary<string, Transcript> manuallyCreatedTranscripts, Dictionary<string, Transcript> generatedTranscripts, List<Dictionary<string, string>> translationLanguages)
         {
-            this.video_id = video_id;
-            this._manually_created_transcripts = manually_created_transcripts;
-            this._generated_transcripts = generated_transcripts;
-            this._translation_languages = translation_languages;
+            this.VideoId = videoId;
+            this._manuallyCreatedTranscripts = manuallyCreatedTranscripts;
+            this._generatedTranscripts = generatedTranscripts;
+            this._translationLanguages = translationLanguages;
         }
 
         /// <summary>
         /// Factory method for TranscriptList.
         /// </summary>
-        /// <param name="http_client">http client which is used to make the transcript retrieving http calls</param>
-        /// <param name="video_id">the id of the video this TranscriptList is for</param>
-        /// <param name="captions_json">the JSON parsed from the YouTube pages static HTML</param>
+        /// <param name="httpClient">http client which is used to make the transcript retrieving http calls</param>
+        /// <param name="videoId">the id of the video this TranscriptList is for</param>
+        /// <param name="captionsJson">the JSON parsed from the YouTube pages static HTML</param>
         /// <returns>the created <see cref="TranscriptList"/></returns>
-        public static TranscriptList build(HttpClient http_client, string video_id, JsonElement captions_json)
+        public static TranscriptList build(HttpClient httpClient, string videoId, JsonElement captionsJson)
         {
-            var translation_languages = new List<Dictionary<string, string>>();
-            foreach (var translation_language in captions_json.GetProperty("translationLanguages").EnumerateArray())
+            var translationLanguages = new List<Dictionary<string, string>>();
+            foreach (var translation_language in captionsJson.GetProperty("translationLanguages").EnumerateArray())
             {
-                translation_languages.Add(new Dictionary<string, string>
+                translationLanguages.Add(new Dictionary<string, string>
                 {
                     { "language", translation_language.GetProperty("languageName").GetProperty("simpleText").GetString() },
                     { "language_code", translation_language.GetProperty("languageCode").GetString() }
                 });
             }
 
-            var manually_created_transcripts = new Dictionary<string, Transcript>();
-            var generated_transcripts = new Dictionary<string, Transcript>();
+            var manuallyCreatedTranscripts = new Dictionary<string, Transcript>();
+            var generatedTranscripts = new Dictionary<string, Transcript>();
 
-            foreach (var caption in captions_json.GetProperty("captionTracks").EnumerateArray())
+            foreach (var caption in captionsJson.GetProperty("captionTracks").EnumerateArray())
             {
                 string kind = string.Empty;
                 if (caption.TryGetProperty("kind", out var kindJson))
@@ -170,36 +170,36 @@ namespace YoutubeTranscriptApi
                 }
 
                 var transcript = new Transcript(
-                    http_client,
-                    video_id,
+                    httpClient,
+                    videoId,
                     caption.GetProperty("baseUrl").GetString(),
                     caption.GetProperty("name").GetProperty("simpleText").GetString(),
                     caption.GetProperty("languageCode").GetString(),
                     kind == "asr",
-                    isTranslatable ? translation_languages : new List<Dictionary<string, string>>());
+                    isTranslatable ? translationLanguages : new List<Dictionary<string, string>>());
 
                 if (kind == "asr")
                 {
-                    generated_transcripts.Add(caption.GetProperty("languageCode").GetString(), transcript);
+                    generatedTranscripts.Add(caption.GetProperty("languageCode").GetString(), transcript);
                 }
                 else
                 {
-                    manually_created_transcripts.Add(caption.GetProperty("languageCode").GetString(), transcript);
+                    manuallyCreatedTranscripts.Add(caption.GetProperty("languageCode").GetString(), transcript);
                 }
             }
 
             return new TranscriptList(
-                video_id,
-                manually_created_transcripts,
-                generated_transcripts,
-                translation_languages
+                videoId,
+                manuallyCreatedTranscripts,
+                generatedTranscripts,
+                translationLanguages
             );
         }
 
         /// <inheritdoc/>
         public IEnumerator<Transcript> GetEnumerator()
         {
-            foreach (var val in _manually_created_transcripts.Values.Concat(_generated_transcripts.Values))
+            foreach (var val in _manuallyCreatedTranscripts.Values.Concat(_generatedTranscripts.Values))
             {
                 yield return val;
             }
@@ -215,115 +215,115 @@ namespace YoutubeTranscriptApi
         /// are found, generated transcripts are used. If you only want generated transcripts use
         /// find_manually_created_transcript instead.
         /// </summary>
-        /// <param name="language_codes">A list of language codes in a descending priority. For example, if this is set to
+        /// <param name="languageCodes">A list of language codes in a descending priority. For example, if this is set to
         /// ['de', 'en'] it will first try to fetch the german transcript(de) and then fetch the english transcript(en) if
         /// it fails to do so.</param>
         /// <returns>the found Transcript</returns>
-        public Transcript find_transcript(IReadOnlyList<string> language_codes)
+        public Transcript FindTranscript(IReadOnlyList<string> languageCodes)
         {
-            return _find_transcript(language_codes, new[]
+            return findTranscript(languageCodes, new[]
             {
-                _manually_created_transcripts,
-                _generated_transcripts
+                _manuallyCreatedTranscripts,
+                _generatedTranscripts
             });
         }
 
         /// <summary>
         /// Finds a automatically generated transcript for a given language code.
         /// </summary>
-        /// <param name="language_codes">A list of language codes in a descending priority. For example, if this is set to
+        /// <param name="languageCodes">A list of language codes in a descending priority. For example, if this is set to
         /// ['de', 'en'] it will first try to fetch the german transcript(de) and then fetch the english transcript(en) if
         /// it fails to do so.</param>
         /// <returns>the found Transcript</returns>
-        public Transcript find_generated_transcript(IReadOnlyList<string> language_codes)
+        public Transcript FindGeneratedTranscript(IReadOnlyList<string> languageCodes)
         {
-            return _find_transcript(language_codes, new[] { _generated_transcripts });
+            return findTranscript(languageCodes, new[] { _generatedTranscripts });
         }
 
         /// <summary>
         /// Finds a manually created transcript for a given language code.
         /// </summary>
-        /// <param name="language_codes">A list of language codes in a descending priority. For example, if this is set to
+        /// <param name="languageCodes">A list of language codes in a descending priority. For example, if this is set to
         /// ['de', 'en'] it will first try to fetch the german transcript(de) and then fetch the english transcript(en) if
         /// it fails to do so.</param>
         /// <returns>the found Transcript</returns>
-        public Transcript find_manually_created_transcript(IReadOnlyList<string> language_codes)
+        public Transcript FindManuallyCreatedTranscript(IReadOnlyList<string> languageCodes)
         {
-            return _find_transcript(language_codes, new[] { _manually_created_transcripts });
+            return findTranscript(languageCodes, new[] { _manuallyCreatedTranscripts });
         }
 
-        private Transcript _find_transcript(IReadOnlyList<string> language_codes, IReadOnlyList<Dictionary<string, Transcript>> transcript_dicts)
+        private Transcript findTranscript(IReadOnlyList<string> languageCodes, IReadOnlyList<Dictionary<string, Transcript>> transcriptDicts)
         {
-            foreach (var language_code in language_codes)
+            foreach (var languageCode in languageCodes)
             {
-                foreach (var transcript_dict in transcript_dicts)
+                foreach (var transcript_dict in transcriptDicts)
                 {
-                    if (transcript_dict.TryGetValue(language_code, out var val))
+                    if (transcript_dict.TryGetValue(languageCode, out var val))
                     {
                         return val;
                     }
                 }
             }
 
-            throw new NoTranscriptFound(this.video_id, language_codes, this);
+            throw new NoTranscriptFound(this.VideoId, languageCodes, this);
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"For this video ({video_id}) transcripts are available in the following languages:\n\n" +
+            return $"For this video ({VideoId}) transcripts are available in the following languages:\n\n" +
                 "(MANUALLY CREATED)\n" +
-                $"{_get_language_description(_manually_created_transcripts.Values.Select(transcript => transcript.ToString()))}\n\n" +
+                $"{getLanguageDescription(_manuallyCreatedTranscripts.Values.Select(transcript => transcript.ToString()))}\n\n" +
                 "(GENERATED)\n" +
-                $"{_get_language_description(_generated_transcripts.Values.Select(transcript => transcript.ToString()))}\n\n" +
+                $"{getLanguageDescription(_generatedTranscripts.Values.Select(transcript => transcript.ToString()))}\n\n" +
                 "(TRANSLATION LANGUAGES)\n" +
-                $"{_get_language_description(_translation_languages.Select(translation_language => $"{ translation_language["language_code"]} (\"{translation_language["language"]}\")"))}";
+                $"{getLanguageDescription(_translationLanguages.Select(translationLanguage => $"{ translationLanguage["language_code"]} (\"{translationLanguage["language"]}\")"))}";
         }
 
-        private string _get_language_description(IEnumerable<string> transcript_strings)
+        private string getLanguageDescription(IEnumerable<string> transcriptStrings)
         {
-            if (!transcript_strings.Any()) return "None";
-            return string.Join("\n", transcript_strings.Select(transcript => $" - {transcript}"));
+            if (!transcriptStrings.Any()) return "None";
+            return string.Join("\n", transcriptStrings.Select(transcript => $" - {transcript}"));
         }
     }
 
     public class Transcript
     {
-        private readonly IReadOnlyList<Dictionary<string, string>> translation_languages;
-        private readonly Dictionary<string, string> _translation_languages_dict;
-        private readonly HttpClient _http_client;
+        private readonly IReadOnlyList<Dictionary<string, string>> translationLanguages;
+        private readonly Dictionary<string, string> _translationLanguagesDict;
+        private readonly HttpClient _httpClient;
         internal readonly string _url;
 
-        public string video_id { get; }
-        public string language { get; }
-        public string language_code { get; }
-        public bool is_generated { get; }
+        public string VideoId { get; }
+        public string Language { get; }
+        public string LanguageCode { get; }
+        public bool IsGenerated { get; }
 
         /// <summary>
         /// You probably don't want to initialize this directly. Usually you'll access Transcript objects using a
         /// TranscriptList.
         /// </summary>
-        /// <param name="http_client">http client which is used to make the transcript retrieving http calls</param>
-        /// <param name="video_id">the id of the video this TranscriptList is for</param>
+        /// <param name="httpClient">http client which is used to make the transcript retrieving http calls</param>
+        /// <param name="videoId">the id of the video this TranscriptList is for</param>
         /// <param name="url">the url which needs to be called to fetch the transcript</param>
         /// <param name="language">the name of the language this transcript uses</param>
-        /// <param name="language_code"></param>
-        /// <param name="is_generated"></param>
-        /// <param name="translation_languages"></param>
-        public Transcript(HttpClient http_client, string video_id, string url, string language, string language_code,
-            bool is_generated, IReadOnlyList<Dictionary<string, string>> translation_languages)
+        /// <param name="languageCode"></param>
+        /// <param name="isGenerated"></param>
+        /// <param name="translationLanguages"></param>
+        public Transcript(HttpClient httpClient, string videoId, string url, string language, string languageCode,
+            bool isGenerated, IReadOnlyList<Dictionary<string, string>> translationLanguages)
         {
-            this._http_client = http_client;
-            this.video_id = video_id;
+            this._httpClient = httpClient;
+            this.VideoId = videoId;
             this._url = url;
-            this.language = language;
-            this.language_code = language_code;
-            this.is_generated = is_generated;
-            this.translation_languages = translation_languages;
-            this._translation_languages_dict = new Dictionary<string, string>();
-            foreach (var translation_language in translation_languages)
+            this.Language = language;
+            this.LanguageCode = languageCode;
+            this.IsGenerated = isGenerated;
+            this.translationLanguages = translationLanguages;
+            this._translationLanguagesDict = new Dictionary<string, string>();
+            foreach (var translation_language in translationLanguages)
             {
-                _translation_languages_dict.Add(translation_language["language_code"], translation_language["language"]);
+                _translationLanguagesDict.Add(translation_language["language_code"], translation_language["language"]);
             }
         }
 
@@ -331,36 +331,36 @@ namespace YoutubeTranscriptApi
         /// Loads the actual transcript data.
         /// </summary>
         /// <returns>a list of <see cref="TranscriptItem"/> containing the 'text', 'start' and 'duration' keys</returns>
-        public IEnumerable<TranscriptItem> fetch()
+        public IEnumerable<TranscriptItem> Fetch()
         {
-            return new _TranscriptParser().parse(this._http_client.GetStringAsync(this._url).Result);
+            return new TranscriptParser().Parse(this._httpClient.GetStringAsync(this._url).Result);
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"{language_code} (\"{language}\"){(is_translatable ? "[TRANSLATABLE]" : "")}";
+            return $"{LanguageCode} (\"{Language}\"){(IsTranslatable ? "[TRANSLATABLE]" : "")}";
         }
 
-        public bool is_translatable => translation_languages.Count > 0;
+        public bool IsTranslatable => translationLanguages.Count > 0;
 
-        public Transcript translate(string language_code)
+        public Transcript Translate(string language_code)
         {
-            if (!is_translatable)
+            if (!IsTranslatable)
             {
-                throw new NotTranslatable(video_id);
+                throw new NotTranslatable(VideoId);
             }
 
-            if (!_translation_languages_dict.ContainsKey(language_code))
+            if (!_translationLanguagesDict.ContainsKey(language_code))
             {
-                throw new TranslationLanguageNotAvailable(video_id);
+                throw new TranslationLanguageNotAvailable(VideoId);
             }
 
             return new Transcript(
-                _http_client,
-                video_id,
+                _httpClient,
+                VideoId,
                 $"{_url}&tlang={language_code}",
-                _translation_languages_dict[language_code],
+                _translationLanguagesDict[language_code],
                 language_code,
                 true,
                 Array.Empty<Dictionary<string, string>>()
@@ -377,20 +377,20 @@ namespace YoutubeTranscriptApi
         public float Duration { get; init; }
     }
 
-    internal class _TranscriptParser
+    internal class TranscriptParser
     {
         private readonly Regex HTML_TAG_REGEX = new Regex("<[^>]*>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        public IEnumerable<TranscriptItem> parse(string plain_data)
+        public IEnumerable<TranscriptItem> Parse(string plain_data)
         {
-            foreach (var xml_element in XDocument.Parse(plain_data).Root.Elements("text"))
+            foreach (var xmlElement in XDocument.Parse(plain_data).Root.Elements("text"))
             {
-                var text = xml_element.Value;
+                var text = xmlElement.Value;
                 if (string.IsNullOrEmpty(text)) continue;
 
                 text = HTML_TAG_REGEX.Replace(System.Web.HttpUtility.HtmlDecode(text), "");
-                _ = float.TryParse(xml_element.Attribute(XName.Get("start")).Value, out var start);
-                _ = float.TryParse(xml_element.Attribute(XName.Get("dur"))?.Value ?? "0.0", out var duration);
+                _ = float.TryParse(xmlElement.Attribute(XName.Get("start")).Value, out var start);
+                _ = float.TryParse(xmlElement.Attribute(XName.Get("dur"))?.Value ?? "0.0", out var duration);
 
                 yield return new TranscriptItem()
                 {

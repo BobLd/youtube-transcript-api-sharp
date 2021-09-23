@@ -13,12 +13,12 @@ namespace YoutubeTranscriptApi.Tests
 
     public class TestYouTubeTranscriptApi : IDisposable
     {
-        private readonly TranscriptList list_transcripts_GJLlxj_dtq8;
+        private readonly TranscriptList _listTranscriptsGJLlxj_dtq8;
         private readonly YouTubeTranscriptApi _youTubeTranscriptApi;
         public TestYouTubeTranscriptApi()
         {
             _youTubeTranscriptApi = new YouTubeTranscriptApi();
-            list_transcripts_GJLlxj_dtq8 = _youTubeTranscriptApi.list_transcripts("GJLlxj_dtq8");
+            _listTranscriptsGJLlxj_dtq8 = _youTubeTranscriptApi.ListTranscripts("GJLlxj_dtq8");
         }
 
         public void Dispose()
@@ -37,7 +37,7 @@ namespace YoutubeTranscriptApi.Tests
         {
             using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
             {
-                foreach (var item in youTubeTranscriptApi.get_transcript("GJLlxj_dtq8"))
+                foreach (var item in youTubeTranscriptApi.GetTranscript("GJLlxj_dtq8"))
                 {
                     Trace.WriteLine(JsonSerializer.Serialize(item, new JsonSerializerOptions()
                     {
@@ -51,9 +51,9 @@ namespace YoutubeTranscriptApi.Tests
         public void test_list_transcripts()
         {
             //var transcript_list = youTubeTranscriptApi.list_transcripts("GJLlxj_dtq8");
-            var transcript_list = list_transcripts_GJLlxj_dtq8;
+            var transcript_list = _listTranscriptsGJLlxj_dtq8;
 
-            var language_codes = transcript_list.Select(transcript => transcript.language_code).ToArray();
+            var language_codes = transcript_list.Select(transcript => transcript.LanguageCode).ToArray();
 
             Assert.Equal(new[] { "zh", "de", "en", "hi", "ja", "ko", "es", "cs", "en" }, language_codes);
         }
@@ -62,36 +62,36 @@ namespace YoutubeTranscriptApi.Tests
         public void test_list_transcripts__find_manually_created()
         {
             //var transcript_list = youTubeTranscriptApi.list_transcripts("GJLlxj_dtq8");
-            var transcript_list = list_transcripts_GJLlxj_dtq8;
+            var transcript_list = _listTranscriptsGJLlxj_dtq8;
 
-            var transcript = transcript_list.find_manually_created_transcript(new[] { "cs" });
+            var transcript = transcript_list.FindManuallyCreatedTranscript(new[] { "cs" });
 
-            Assert.False(transcript.is_generated);
+            Assert.False(transcript.IsGenerated);
         }
 
         [Fact]
         public void test_list_transcripts__find_generated()
         {
             //var transcript_list = youTubeTranscriptApi.list_transcripts("GJLlxj_dtq8");
-            var transcript_list = list_transcripts_GJLlxj_dtq8;
+            var transcript_list = _listTranscriptsGJLlxj_dtq8;
 
-            Assert.Throws<NoTranscriptFound>(() => transcript_list.find_generated_transcript(new[] { "cs" }));
+            Assert.Throws<NoTranscriptFound>(() => transcript_list.FindGeneratedTranscript(new[] { "cs" }));
 
-            var transcript = transcript_list.find_generated_transcript(new[] { "en" });
+            var transcript = transcript_list.FindGeneratedTranscript(new[] { "en" });
 
-            Assert.True(transcript.is_generated);
+            Assert.True(transcript.IsGenerated);
         }
 
         [Fact]
         public void test_translate_transcript()
         {
             //var transcript = youTubeTranscriptApi.list_transcripts("GJLlxj_dtq8").find_transcript(new[] { "en" });
-            var transcript_list = list_transcripts_GJLlxj_dtq8;
-            var transcript = transcript_list.find_transcript(new[] { "en" });
+            var transcript_list = _listTranscriptsGJLlxj_dtq8;
+            var transcript = transcript_list.FindTranscript(new[] { "en" });
 
-            var translated_transcript = transcript.translate("af");
+            var translated_transcript = transcript.Translate("af");
 
-            Assert.Equal("af", translated_transcript.language_code);
+            Assert.Equal("af", translated_transcript.LanguageCode);
             Assert.Contains("&tlang=af", translated_transcript._url);
         }
 
@@ -99,9 +99,9 @@ namespace YoutubeTranscriptApi.Tests
         public void test_translate_transcript__translation_language_not_available()
         {
             //var transcript = youTubeTranscriptApi.list_transcripts("GJLlxj_dtq8").find_transcript(new[] { "en" });
-            var transcript_list = list_transcripts_GJLlxj_dtq8;
-            var transcript = transcript_list.find_transcript(new[] { "en" });
-            Assert.Throws<TranslationLanguageNotAvailable>(() => transcript.translate("xyz"));
+            var transcript_list = _listTranscriptsGJLlxj_dtq8;
+            var transcript = transcript_list.FindTranscript(new[] { "en" });
+            Assert.Throws<TranslationLanguageNotAvailable>(() => transcript.Translate("xyz"));
         }
 
         [Fact(Skip = "read-only for the moment")]
@@ -120,7 +120,7 @@ namespace YoutubeTranscriptApi.Tests
         {
             using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
             {
-                var transcript = youTubeTranscriptApi.get_transcript("GJLlxj_dtq8", new[] { "de", "en" }).ToArray();
+                var transcript = youTubeTranscriptApi.GetTranscript("GJLlxj_dtq8", new[] { "de", "en" }).ToArray();
 
                 // Check that it's in german
                 Assert.NotEmpty(transcript);
@@ -149,7 +149,7 @@ namespace YoutubeTranscriptApi.Tests
 
             using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
             {
-                var transcript = youTubeTranscriptApi.get_transcript("F1xioXWb8CY").ToList();
+                var transcript = youTubeTranscriptApi.GetTranscript("F1xioXWb8CY").ToList();
             }
 
             /*
@@ -170,7 +170,7 @@ namespace YoutubeTranscriptApi.Tests
             using (var httpRequest = new HttpClient(httpHandler))
             {
                 var transcriptListFetcher = new TranscriptListFetcher(httpRequest, httpHandler);
-                transcriptListFetcher._create_consent_cookie(html, "F1xioXWb8CY");
+                transcriptListFetcher.createConsentCookie(html, "F1xioXWb8CY");
             }
         }
 
@@ -196,7 +196,7 @@ namespace YoutubeTranscriptApi.Tests
                 using (var httpRequest = new HttpClient(httpHandler))
                 {
                     var transcriptListFetcher = new TranscriptListFetcher(httpRequest, httpHandler);
-                    transcriptListFetcher._extract_captions_json(html, "abc");
+                    transcriptListFetcher.extractCaptionsJson(html, "abc");
                 }
 
                 /*
@@ -221,7 +221,7 @@ namespace YoutubeTranscriptApi.Tests
             {
                 using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
                 {
-                    youTubeTranscriptApi.get_transcript("dsMFmonKDD4");
+                    youTubeTranscriptApi.GetTranscript("dsMFmonKDD4");
                 }
             });
         }
@@ -233,7 +233,7 @@ namespace YoutubeTranscriptApi.Tests
             {
                 using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
                 {
-                    youTubeTranscriptApi.get_transcript("GJLlxj_dtq8", languages: new[] { "cz" });
+                    youTubeTranscriptApi.GetTranscript("GJLlxj_dtq8", languages: new[] { "cz" });
                 }
             });
         }
@@ -245,7 +245,7 @@ namespace YoutubeTranscriptApi.Tests
             {
                 using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
                 {
-                    youTubeTranscriptApi.get_transcript("MwBPvcYFY2E");
+                    youTubeTranscriptApi.GetTranscript("MwBPvcYFY2E");
                 }
             });
         }
@@ -261,7 +261,7 @@ namespace YoutubeTranscriptApi.Tests
         {
             using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
             {
-                var transcript = youTubeTranscriptApi.get_transcript("GJLlxj_dtq8", cookies: Path.Combine(Directory.GetCurrentDirectory(), "example_cookies.txt"));
+                var transcript = youTubeTranscriptApi.GetTranscript("GJLlxj_dtq8", cookies: Path.Combine(Directory.GetCurrentDirectory(), "example_cookies.txt"));
             }
         }
 
@@ -275,7 +275,7 @@ namespace YoutubeTranscriptApi.Tests
 
             using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
             {
-                var session_cookies = youTubeTranscriptApi._load_cookies(cookies, "GJLlxj_dtq8");
+                var session_cookies = youTubeTranscriptApi.loadCookies(cookies, "GJLlxj_dtq8");
 
                 Assert.Single(session_cookies);
                 Assert.Equal("TEST_FIELD=TEST_VALUE", session_cookies[0].ToString());
@@ -291,7 +291,7 @@ namespace YoutubeTranscriptApi.Tests
 
                 using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
                 {
-                    var session_cookies = youTubeTranscriptApi._load_cookies(cookies, "GJLlxj_dtq8");
+                    var session_cookies = youTubeTranscriptApi.loadCookies(cookies, "GJLlxj_dtq8");
                 }
             });
         }
@@ -306,7 +306,7 @@ namespace YoutubeTranscriptApi.Tests
 
                 using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
                 {
-                    var session_cookies = youTubeTranscriptApi._load_cookies(cookies, "GJLlxj_dtq8");
+                    var session_cookies = youTubeTranscriptApi.loadCookies(cookies, "GJLlxj_dtq8");
                 }
             });
         }
