@@ -182,121 +182,12 @@ transcript = transcript_list.find_generated_transcript(['de', 'en'])
 ```
 
 ### Using Formatters
-Formatters are meant to be an additional layer of processing of the transcript you pass it. The goal is to convert the transcript from its Python data type into a consistent string of a given "format". Such as a basic text (`.txt`) or even formats that have a defined specification such as JSON (`.json`), WebVTT format (`.vtt`), Comma-separated format (`.csv`), etc...
+Not ported yet
 
-The `formatters` submodule provides a few basic formatters to wrap around you transcript data in cases where you might want to do something such as output a specific format then write that format to a file. Maybe to backup/store and run another script against at a later time.
-
-We provided a few subclasses of formatters to use:
-
-- JSONFormatter
-- PrettyPrintFormatter
-- TextFormatter
-- WebVTTFormatter (a basic implementation)
-
-Here is how to import from the `formatters` module.
-
-```python
-# the base class to inherit from when creating your own formatter.
-from youtube_transcript_api.formatters import Formatter
-
-# some provided subclasses, each outputs a different string format.
-from youtube_transcript_api.formatters import JSONFormatter
-from youtube_transcript_api.formatters import TextFormatter
-from youtube_transcript_api.formatters import WebVTTFormatter
-```
-
-### Provided Formatter Example
-Lets say we wanted to retrieve a transcript and write that transcript as a JSON file in the same format as the API returned it as. That would look something like this:
-
-```python
-# your_custom_script.py
-
-from youtube_transcript_api import YouTubeTranscriptApi
-from youtube_transcript_api.formatters import JSONFormatter
-
-# Must be a single transcript.
-transcript = YouTubeTranscriptApi.get_transcript(video_id)
-
-formatter = JSONFormatter()
-
-# .format_transcript(transcript) turns the transcript into a JSON string.
-json_formatted = formatter.format_transcript(transcript)
-
-
-# Now we can write it out to a file.
-with open('your_filename.json', 'w', encoding='utf-8') as json_file:
-    json_file.write(json_formatted)
-
-# Now should have a new JSON file that you can easily read back into Python.
-```
-
-**Passing extra keyword arguments**
-
-Since JSONFormatter leverages `json.dumps()` you can also forward keyword arguments into `.format_transcript(transcript)` such as making your file output prettier by forwarding the `indent=2` keyword argument.
-
-```python
-json_formatted = JSONFormatter().format_transcript(transcript, indent=2)
-```
-
-### Custom Formatter Example
-You can implement your own formatter class. Just inherit from the `Formatter` base class and ensure you implement the `format_transcript(self, transcript, **kwargs)` and `format_transcripts(self, transcripts, **kwargs)` methods which should ultimately return a string when called on your formatter instance.
-
-```python
-
-class MyCustomFormatter(Formatter):
-    def format_transcript(self, transcript, **kwargs):
-        # Do your custom work in here, but return a string.
-        return 'your processed output data as a string.'
-
-    def format_transcripts(self, transcripts, **kwargs):
-        # Do your custom work in here to format a list of transcripts, but return a string.
-        return 'your processed output data as a string.'
-```
 
 ## CLI
 
-Execute the CLI script using the video ids as parameters and the results will be printed out to the command line:  
-
-```  
-youtube_transcript_api <first_video_id> <second_video_id> ...  
-```  
-
-The CLI also gives you the option to provide a list of preferred languages:  
-
-```  
-youtube_transcript_api <first_video_id> <second_video_id> ... --languages de en  
-```
-
-You can also specify if you want to exclude automatically generated or manually created subtitles:
-
-```  
-youtube_transcript_api <first_video_id> <second_video_id> ... --languages de en --exclude-generated
-youtube_transcript_api <first_video_id> <second_video_id> ... --languages de en --exclude-manually-created
-```
-
-If you would prefer to write it into a file or pipe it into another application, you can also output the results as json using the following line:  
-
-```  
-youtube_transcript_api <first_video_id> <second_video_id> ... --languages de en --format json > transcripts.json
-```  
-
-Translating transcripts using the CLI is also possible:
-
-```  
-youtube_transcript_api <first_video_id> <second_video_id> ... --languages en --translate de
-```  
-
-If you are not sure which languages are available for a given video you can call, to list all available transcripts:
-
-```  
-youtube_transcript_api --list-transcripts <first_video_id>
-```
-
-If a video's ID starts with a hyphen you'll have to mask the hyphen using `\` to prevent the CLI from mistaking it for a argument name. For example to get the transcript for the video with the ID `-abc123` run:
-
-```
-youtube_transcript_api "\-abc123"
-```
+Not ported yet
 
 ## Proxy
 
