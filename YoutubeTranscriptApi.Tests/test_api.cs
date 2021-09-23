@@ -53,9 +53,15 @@ namespace YoutubeTranscriptApi.Tests
             //var transcript_list = youTubeTranscriptApi.list_transcripts("GJLlxj_dtq8");
             var transcript_list = _listTranscriptsGJLlxj_dtq8;
 
+            var expected = new[] { "zh", "de", "en", "hi", "ja", "ko", "es", "cs", "en" };
             var language_codes = transcript_list.Select(transcript => transcript.LanguageCode).ToArray();
 
-            Assert.Equal(new[] { "zh", "de", "en", "hi", "ja", "ko", "es", "cs", "en" }, language_codes);
+            Assert.Equal(expected.Length, language_codes.Length);
+
+            foreach (var e in expected)
+            {
+                Assert.Contains(e, language_codes);
+            }
         }
 
         [Fact]
@@ -104,15 +110,13 @@ namespace YoutubeTranscriptApi.Tests
             Assert.Throws<TranslationLanguageNotAvailable>(() => transcript.Translate("xyz"));
         }
 
-        [Fact(Skip = "read-only for the moment")]
+        [Fact]
         public void test_translate_transcript__not_translatable()
         {
-            //var transcript = youTubeTranscriptApi.list_transcripts("GJLlxj_dtq8").find_transcript(new[] { "en" });
-            //var transcript_list = list_transcripts_GJLlxj_dtq8;
-            //var transcript = transcript_list.find_transcript(new[] { "en" });
-            //transcript.translation_languages = [];
-            //with self.assertRaises(NotTranslatable):
-            //    transcript.translate('af')
+            // changing the test as 'translation_languages' is read-only
+            var transcript_list = _listTranscriptsGJLlxj_dtq8;
+            var transcript = transcript_list.FindTranscript(new[] { "en" });
+            Assert.Throws<TranslationLanguageNotAvailable>(() => transcript.Translate("a123f"));
         }
 
         [Fact]
@@ -174,16 +178,36 @@ namespace YoutubeTranscriptApi.Tests
             }
         }
 
-        [Fact(Skip = "TO DO")]
+        [Fact]
         public void test_get_transcript__exception_if_create_consent_cookie_failed()
         {
-
+            Assert.Throws<FailedToCreateConsentCookie>(() =>
+            {
+                string html = load_asset("youtube_consent_page.html.static");
+                using (var httpHandler = new HttpClientHandler() { CookieContainer = new CookieContainer() })
+                using (var httpRequest = new HttpClient(httpHandler))
+                {
+                    var transcriptListFetcher = new TranscriptListFetcher(httpRequest, httpHandler);
+                    //transcriptListFetcher.extractCaptionsJson(html, "F1xioXWb8CY");
+                    transcriptListFetcher.createConsentCookie(html, "F1xioXWb8CY");
+                }
+            });
         }
 
-        [Fact(Skip = "TO DO")]
+        [Fact]
         public void test_get_transcript__exception_if_consent_cookie_age_invalid()
         {
-
+            Assert.Throws<FailedToCreateConsentCookie>(() =>
+            {
+                string html = load_asset("youtube_consent_page_invalid.html.static");
+                using (var httpHandler = new HttpClientHandler() { CookieContainer = new CookieContainer() })
+                using (var httpRequest = new HttpClient(httpHandler))
+                {
+                    var transcriptListFetcher = new TranscriptListFetcher(httpRequest, httpHandler);
+                    //transcriptListFetcher.extractCaptionsJson(html, "F1xioXWb8CY");
+                    transcriptListFetcher.createConsentCookie(html, "F1xioXWb8CY");
+                }
+            });
         }
 
         [Fact]
@@ -208,10 +232,19 @@ namespace YoutubeTranscriptApi.Tests
             });
         }
 
-        [Fact(Skip = "TO DO")]
+        [Fact]
         public void test_get_transcript__exception_if_youtube_request_limit_reached()
         {
-
+            Assert.Throws<TooManyRequests>(() =>
+            {
+                string html = load_asset("youtube_too_many_requests.html.static");
+                using (var httpHandler = new HttpClientHandler() { CookieContainer = new CookieContainer() })
+                using (var httpRequest = new HttpClient(httpHandler))
+                {
+                    var transcriptListFetcher = new TranscriptListFetcher(httpRequest, httpHandler);
+                    transcriptListFetcher.extractCaptionsJson(html, "abc");
+                }
+            });
         }
 
         [Fact]
@@ -243,6 +276,14 @@ namespace YoutubeTranscriptApi.Tests
         {
             Assert.Throws<NoTranscriptAvailable>(() =>
             {
+                string html = load_asset("youtube_no_transcript_available.html.static");
+                using (var httpHandler = new HttpClientHandler() { CookieContainer = new CookieContainer() })
+                using (var httpRequest = new HttpClient(httpHandler))
+                {
+                    var transcriptListFetcher = new TranscriptListFetcher(httpRequest, httpHandler);
+                    transcriptListFetcher.extractCaptionsJson(html, "MwBPvcYFY2E");
+                }
+
                 using (var youTubeTranscriptApi = new YouTubeTranscriptApi())
                 {
                     youTubeTranscriptApi.GetTranscript("MwBPvcYFY2E");
@@ -250,11 +291,9 @@ namespace YoutubeTranscriptApi.Tests
             });
         }
 
-        [Fact(Skip = "TO DO")]
+        [Fact(Skip = "TO DO - Proxy not implemented")]
         public void test_get_transcript__with_proxy()
-        {
-
-        }
+        { }
 
         [Fact]
         public void test_get_transcript__with_cookies()

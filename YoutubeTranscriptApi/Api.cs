@@ -161,6 +161,10 @@ namespace YoutubeTranscriptApi
 
                 return cookieCollection;
             }
+            catch (CookiesInvalid)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 throw new CookiePathInvalid(video_id, ex);

@@ -289,9 +289,9 @@ namespace YoutubeTranscriptApi
 
     public class Transcript
     {
-        private readonly IReadOnlyList<Dictionary<string, string>> translationLanguages;
         private readonly Dictionary<string, string> _translationLanguagesDict;
         private readonly HttpClient _httpClient;
+        private readonly IReadOnlyList<Dictionary<string, string>> _translationLanguages;
         internal readonly string _url;
 
         public string VideoId { get; }
@@ -319,7 +319,7 @@ namespace YoutubeTranscriptApi
             this.Language = language;
             this.LanguageCode = languageCode;
             this.IsGenerated = isGenerated;
-            this.translationLanguages = translationLanguages;
+            this._translationLanguages = translationLanguages;
             this._translationLanguagesDict = new Dictionary<string, string>();
             foreach (var translation_language in translationLanguages)
             {
@@ -342,7 +342,7 @@ namespace YoutubeTranscriptApi
             return $"{LanguageCode} (\"{Language}\"){(IsTranslatable ? "[TRANSLATABLE]" : "")}";
         }
 
-        public bool IsTranslatable => translationLanguages.Count > 0;
+        public bool IsTranslatable => _translationLanguages.Count > 0;
 
         public Transcript Translate(string language_code)
         {
