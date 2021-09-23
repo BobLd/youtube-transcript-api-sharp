@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -11,16 +13,19 @@ namespace YoutubeTranscriptApi
 {
     //https://github.com/jdepoix/youtube-transcript-api/blob/c5bf0132ffa2906cc1bf6d480a70ef799dedc209/youtube_transcript_api/_transcripts.py
 
-    internal class TranscriptListFetcher
+    public class TranscriptListFetcher
     {
         private readonly HttpClient _http_client;
+        private readonly HttpClientHandler _httpClientHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TranscriptListFetcher"/> class.
         /// </summary>
         /// <param name="http_client"></param>
-        public TranscriptListFetcher(HttpClient http_client)
+        /// <param name="httpClientHandler"></param>
+        public TranscriptListFetcher(HttpClient http_client, HttpClientHandler httpClientHandler)
         {
+            _httpClientHandler = httpClientHandler;
             _http_client = http_client;
         }
 
@@ -43,7 +48,7 @@ namespace YoutubeTranscriptApi
                     throw new TooManyRequests(video_id);
                 }
 
-                if (html.Contains("\"playabilityStatus\":"))
+                if (!html.Contains("\"playabilityStatus\":"))
                 {
                     throw new VideoUnavailable(video_id);
                 }
@@ -65,14 +70,13 @@ namespace YoutubeTranscriptApi
 
         public void _create_consent_cookie(string html, string video_id)
         {
-            var match = Regex.Match("name=\"v\" value=\"(.*?)\"", html);
+            var match = Regex.Match(html, "name=\"v\" value=\"(.*?)\"");
             if (!match.Success)
             {
                 throw new FailedToCreateConsentCookie(video_id);
             }
-            //this._http_client.cookies.set('CONSENT', 'YES+' + match.group(1), domain = '.youtube.com')
 
-            throw new NotImplementedException();
+            _httpClientHandler.CookieContainer.Add(new Cookie("CONSENT", $"YES+{match.Groups[1].Value}", null, ".youtube.com"));
         }
 
         public string _fetch_video_html(string video_id)
@@ -80,7 +84,7 @@ namespace YoutubeTranscriptApi
             var html = this._fetch_html(video_id);
             if (html.Contains("action=\"https://consent.youtube.com/s\""))
             {
-                this._create_consent_cookie(html, video_id);
+                _create_consent_cookie(html, video_id);
                 html = this._fetch_html(video_id);
                 if (html.Contains("action=\"https://consent.youtube.com/s\""))
                 {
@@ -340,7 +344,7 @@ namespace YoutubeTranscriptApi
             return $"{language_code} (\"{language}\"){(is_translatable ? "[TRANSLATABLE]" : "")}";
         }
 
-        public bool is_translatable => translation_languages.Count() > 0;
+        public bool is_translatable => translation_languages.Count > 0;
 
         public Transcript translate(string language_code)
         {

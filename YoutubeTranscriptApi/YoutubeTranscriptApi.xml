@@ -94,6 +94,14 @@
             <param name="video_id"></param>
             <param name="cause"></param>
         </member>
+        <member name="M:YoutubeTranscriptApi.CouldNotRetrieveTranscript.#ctor(System.String,System.String,System.Exception)">
+            <summary>
+            Initializes a new instance of the <see cref="T:YoutubeTranscriptApi.CouldNotRetrieveTranscript"/> class.
+            </summary>
+            <param name="video_id"></param>
+            <param name="cause"></param>
+            <param name="exception"></param>
+        </member>
         <member name="T:YoutubeTranscriptApi.VideoUnavailable">
             <inheritdoc/>
         </member>
@@ -157,6 +165,13 @@
             </summary>
             <param name="video_id"></param>
         </member>
+        <member name="M:YoutubeTranscriptApi.CookiePathInvalid.#ctor(System.String,System.Exception)">
+            <summary>
+            Initializes a new instance of the <see cref="T:YoutubeTranscriptApi.CookiePathInvalid"/> class.
+            </summary>
+            <param name="video_id"></param>
+            <param name="exception"></param>
+        </member>
         <member name="T:YoutubeTranscriptApi.CookiesInvalid">
             <inheritdoc/>
         </member>
@@ -186,7 +201,7 @@
             <param name="requested_language_codes"></param>
             <param name="transcript_data"></param>
         </member>
-        <member name="M:YoutubeTranscriptApi.TranscriptListFetcher.#ctor(System.Net.Http.HttpClient)">
+        <member name="M:YoutubeTranscriptApi.TranscriptListFetcher.#ctor(System.Net.Http.HttpClient,System.Net.Http.HttpClientHandler)">
             <summary>
             Initializes a new instance of the <see cref="T:YoutubeTranscriptApi.TranscriptListFetcher"/> class.
             </summary>

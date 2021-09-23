@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
 using System.Net.Http;
 
 namespace YoutubeTranscriptApi
@@ -12,13 +14,15 @@ namespace YoutubeTranscriptApi
     public sealed class YouTubeTranscriptApi : IDisposable
     {
         private readonly HttpClient _http_client;
+        private readonly HttpClientHandler _httpHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="YouTubeTranscriptApi"/> class.
         /// </summary>
         public YouTubeTranscriptApi()
         {
-            _http_client = new HttpClient();
+            _httpHandler = new HttpClientHandler() { CookieContainer = new CookieContainer() };
+            _http_client = new HttpClient(_httpHandler, true);
         }
 
         /// <summary>
@@ -60,11 +64,11 @@ namespace YoutubeTranscriptApi
         {
             if (cookies != null)
             {
-                throw new NotImplementedException();
+                _httpHandler.CookieContainer.Add(_load_cookies(cookies, video_id));
             }
 
             //    http_client.proxies = proxies if proxies else {}
-            return new TranscriptListFetcher(_http_client).fetch(video_id);
+            return new TranscriptListFetcher(_http_client, _httpHandler).fetch(video_id);
         }
 
         /// <summary>
@@ -130,9 +134,68 @@ namespace YoutubeTranscriptApi
             return list_transcripts(video_id, proxies, cookies).find_transcript(languages).fetch();
         }
 
-        private void _load_cookies(string cookies, string video_id)
+        public CookieCollection _load_cookies(string cookies, string video_id)
         {
-            throw new NotImplementedException();
+            // https://stackoverflow.com/questions/15788341/import-cookies-from-text-file-in-c-sharp-window-forms
+            // https://stackoverflow.com/questions/12024657/cookiecontainer-confusion
+            // https://stackoverflow.com/questions/8245034/httpwebrequest-redirect-with-cookies
+
+            try
+            {
+                var cookieCollection = new CookieCollection();
+
+                // Parse cookie file a la MozillaCookieJar
+                // Netscape HTTP Cooke File Parser (format)
+                var lines = File.ReadAllLines(cookies);
+                foreach (var line in lines)
+                {
+                    if (line.StartsWith("#") || string.IsNullOrEmpty(line)) continue;
+
+                    /* https://www.hashbangcode.com/article/netscape-http-cooke-file-parser-php
+                     * 0 domain - The domain that created and that can read the variable.
+                     * 1 flag - A TRUE/FALSE value indicating if all machines within a given domain can access the variable. 
+                     *    This value is set automatically by the browser, depending on the value you set for domain.
+                     * 2 path - The path within the domain that the variable is valid for.
+                     * 3 secure - A TRUE/FALSE value indicating if a secure connection with the domain is needed to access the variable.
+                     * 4 expiration - The UNIX time that the variable will expire on.
+                     * 5 name - The name of the variable.
+                     * 6 value - The value of the variable.
+                     */
+                    var split = line.Split('\t');
+                    string domain = split[0];
+                    string flag = split[1];
+                    string path = split[2];
+                    string secure = split[3];
+                    string expiration = split[4];
+                    string name = split[5];
+                    string value = split[6];
+
+                    if (!long.TryParse(expiration, out var expirationL))
+                    {
+                        continue;
+                    }
+
+                    var date = DateTimeOffset.FromUnixTimeSeconds(expirationL);
+                    if (date < DateTimeOffset.UtcNow)
+                    {
+                        // Expired
+                        continue;
+                    }
+
+                    cookieCollection.Add(new Cookie(name, value, path, domain));
+                }
+
+                if (cookieCollection.Count == 0)
+                {
+                    throw new CookiesInvalid(video_id);
+                }
+
+                return cookieCollection;
+            }
+            catch (Exception ex)
+            {
+                throw new CookiePathInvalid(video_id, ex);
+            }
         }
 
         /// <inheritdoc/>

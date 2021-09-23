@@ -33,6 +33,18 @@ namespace YoutubeTranscriptApi
             this.video_id = video_id;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CouldNotRetrieveTranscript"/> class.
+        /// </summary>
+        /// <param name="video_id"></param>
+        /// <param name="cause"></param>
+        /// <param name="exception"></param>
+        public CouldNotRetrieveTranscript(string video_id, string cause, Exception exception)
+            : base(_build_error_message(video_id, cause), exception)
+        {
+
+        }
+
         private static string _build_error_message(string video_id, string cause)
         {
             string error_message = string.Format(ERROR_MESSAGE, string.Format(Settings.WATCH_URL, video_id));
@@ -141,6 +153,14 @@ namespace YoutubeTranscriptApi
         /// </summary>
         /// <param name="video_id"></param>
         public CookiePathInvalid(string video_id) : base(video_id, CAUSE_MESSAGE)
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CookiePathInvalid"/> class.
+        /// </summary>
+        /// <param name="video_id"></param>
+        /// <param name="exception"></param>
+        public CookiePathInvalid(string video_id, Exception exception) : base(video_id, CAUSE_MESSAGE, exception)
         { }
     }
 

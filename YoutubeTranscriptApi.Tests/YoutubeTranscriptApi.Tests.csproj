@@ -51,6 +51,12 @@
     <None Update="assets\youtube_ww1_nl_en.html.static">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="example_cookies.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="expired_example_cookies.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
